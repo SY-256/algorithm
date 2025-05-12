@@ -1,19 +1,26 @@
+from collections import defaultdict
+
 N = int(input())
 A = list(map(int, input().split()))
 B = list(map(int, input().split()))
 C = list(map(int, input().split()))
 
-# A_div = [n % 46 for n in A]
-# B_div = [n % 46 for n in B]
-C_div = [n % 46 for n in C]
-
-AB = []
+D_A = defaultdict(int)
+D_B = defaultdict(int)
+D_C = defaultdict(int)
 for i in range(N):
-    for j in range(N):
-        AB.append(46 - (A[i] + B[j]) % 46)
+    a = A[i] % 46
+    b = B[i] % 46
+    c = C[i] % 46
+
+    D_A[a] += 1
+    D_B[b] += 1
+    D_C[c] += 1
 
 ans = 0
-for v in AB:
-    ans += C_div.count(v)
-
+for i in range(46):
+    for j in range(46):
+        for k in range(46):
+            if (i + j + k) % 46 == 0:
+                ans += D_A[i] * D_B[j] * D_C[k]
 print(ans)
