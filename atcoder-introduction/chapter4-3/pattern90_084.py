@@ -1,21 +1,17 @@
 N = int(input())
 S = str(input())
-"""
-（考えたこと） 
-↓2パターンで全探索する
-①両端が違う記号
-⇒スタートの記号と切り替わるタイミング以降、カウント
-⇒2重ループなるので回避必要
-⇒増減で切り替わる問題の考え方使えるかも！
-⇒同じ記号が続く数もカウントして、切り替わるタイミングで加算！
-"""
-ans = 0
-for i in range(N - 1):
-    flag = False
-    for j in range(i + 1, N):
-        if S[i] != S[j]:
-            ans += 1
-            flag = True
-        elif flag:
-            ans += 1
+
+count = 0
+vec = []
+for i in range(N):
+    count += 1
+    if i == N - 1 or S[i] != S[i + 1]:
+        vec.append((S[i], count))
+        count = 0
+
+ret = 0
+for char, count in vec:
+    ret += count * (count + 1) // 2
+
+ans = (N * (N + 1)) // 2 - ret
 print(ans)
