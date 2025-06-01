@@ -19,7 +19,7 @@ INF = 1e10  # ありえない位大きなスコア
 
 
 # 迷路ゲームの状態クラス
-class MazeSate:
+class MazeState:
     # 右、左、下、上への移動方向
     dx = [1, -1, 0, 0]
     dy = [0, 0, 1, -1]
@@ -50,7 +50,7 @@ class MazeSate:
 
     # 探索用の盤面評価
     def evaluate_score(self):
-        self.evaluate_score = (
+        self.evaluated_score = (
             self.game_score
         )  # 簡単のために、ゲームスコアをそのまま盤面評価とする
 
@@ -78,8 +78,8 @@ class MazeSate:
 
     # 現在のゲーム状況を文字列にする
     def to_string(self) -> str:
-        result = f"turn:\t{self.turn}"
-        result += f"score:\t{self.game_score}"
+        result = f"turn:\t{self.turn}\n"
+        result += f"score:\t{self.game_score}\n"
 
         for h in range(H):
             for w in range(W):
@@ -97,12 +97,12 @@ class MazeSate:
     # [<]を使うときに呼び出される特殊メソッド
     def __lt__(self, other):
         return (
-            self.evaluate_score > other.evaluated_score
+            self.evaluated_score > other.evaluated_score
         )  # 降順にするため大きいほうが優先
 
 
 # ビーム幅と深さを指定してビームサーチで行動を決定する
-def beam_search_action(state: MazeSate, beam_width: int, beam_depth: int) -> int:
+def beam_search_action(state: MazeState, beam_width: int, beam_depth: int) -> int:
     # 優先度キューを使用してビームを管理（Pythonのheapqは最小値を取り出すので、MazeStateの__lt__で調節）
     now_beam = []
     best_state = None
@@ -123,7 +123,7 @@ def beam_search_action(state: MazeSate, beam_width: int, beam_depth: int) -> int
 
             for action in legal_actions:
                 # 状態を複製して行動を実行
-                next_state = MazeSate()
+                next_state = MazeState()
                 next_state.character = Coord(
                     now_state.character.y, now_state.character.x
                 )
@@ -163,7 +163,7 @@ def test_ai_score(game_number: int):
     score_mean = 0
 
     for i in range(game_number):
-        state = MazeSate(random.randint(0, 10000))
+        state = MazeState(random.randint(0, 10000))
 
         while not state.is_done():
             # ビーム幅2、深さEND_TURNでビームサーチ実行
@@ -177,5 +177,16 @@ def test_ai_score(game_number: int):
     print(f"Score: \t{score_mean}")
 
 
+# シードを指定してゲーム状況を表示しながらAIにプレイ
+def playGame(seed: int) -> None:
+    state = MazeState(seed)
+    print(state.to_string())
+
+    while not state.is_done():
+        action = beam_search_action(state, beam_width=2, beam_depth=END_TRUN)
+        state.advance(action)
+        print(state.to_string())
+
+
 if __name__ == "__main__":
-    test_ai_score(game_number=100)
+    playGame(seed=0)
