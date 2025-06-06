@@ -67,7 +67,7 @@ class AutoMoveMazeState:
     def advance(self):
         """ゲームを1ターン進める"""
         # キャラクターを移動
-        for character_id in CHARACTER_N:
+        for character_id in range(CHARACTER_N):
             self.move_player(character_id)
 
         # ポイント獲得
@@ -122,3 +122,97 @@ class AutoMoveMazeState:
                 print(tmp_state.to_string())
 
         return tmp_state.game_score
+
+    def init(self):
+        """初期化する（キャラクターの位置をランダムに配置）"""
+        for character in self.characters:
+            character.y = random.randint(0, H - 1)
+            character.x = random.randint(0, W - 1)
+
+    def transition(self):
+        """状態遷移する（1つのキャラクターをランダムな位置に移動）"""
+        character = self.characters[random.randint(0, CHARACTER_N - 1)]
+        character.y = random.randint(0, H - 1)
+        character.x = random.randint(0, W - 1)
+
+
+def hill_climb(state, number):
+    """山登り法"""
+    now_state = copy.deepcopy(state)
+    now_state.init()
+    best_score = now_state.get_score()
+
+    for i in range(number):
+        next_state = copy.deepcopy(now_state)
+        next_state.transition()
+        next_score = next_state.get_score()
+
+        if next_score > best_score:
+            best_score = next_score
+            now_state = next_state
+
+    return now_state
+
+
+def simulated_annealing(state, number, start_temp, end_temp):
+    """焼きなまし法"""
+    now_state = copy.deepcopy(state)
+    now_state.init()
+    best_score = now_state.get_score()
+    now_score = best_score
+    best_state = copy.deepcopy(now_state)
+
+    for i in range(number):
+        next_state = copy.deepcopy(now_state)
+        next_state.transition()
+        next_score = next_state.get_score()
+
+        temp = start_temp + (end_temp - start_temp) * (i / number)
+        probability = math.exp((next_score - now_score) / temp)
+        is_force_next = probability > random.random()
+
+        if next_score > now_score or is_force_next:
+            now_score = next_score
+            now_state = next_state
+
+        if next_score > best_score:
+            best_score = next_score
+            best_state = copy.deepcopy(next_state)
+
+    return best_state
+
+
+def test_ai_score(ai_name, ai_function, game_number):
+    """ゲームをgame_number回プレイして平均スコアを表示する"""
+    random.seed(0)
+    score_mean = 0
+
+    for i in range(game_number):
+        state = AutoMoveMazeState(random.randint(0, 1000000))
+        state = ai_function(state)
+        score = state.get_score(False)
+        score_mean += score
+
+    score_mean /= game_number
+    print(f"Socre of {ai_name}:\t{score_mean}")
+
+
+def main():
+    simulate_number = 1000
+    game_number = 1000
+
+    # AIアルゴリズムのリスト
+    ais = [
+        ("hillClimb", lambda state: hill_climb(state, simulate_number)),
+        (
+            "simulatedAnnealing",
+            lambda state: simulated_annealing(state, simulate_number, 500, 10),
+        ),
+    ]
+
+    for ai_name, ai_function in ais:
+        test_ai_score(ai_name, ai_function, game_number)
+
+
+if __name__ == "__main__":
+    main()
