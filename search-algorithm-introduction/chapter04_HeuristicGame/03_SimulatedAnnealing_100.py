@@ -6,29 +6,29 @@ import copy
 H = 5  # 迷路の高さ
 W = 5  # 迷路の幅
 END_TURN = 5  # ゲーム終了ターン
-CHARACTER_N = 3  # キャラクターの数
+CHARACTER_N = 3  # キャラクター数
 INF = 1e10
 
-# グローバル乱数生成器
+# グルーバル乱数生成器
 random.seed(0)
 
 
 class Coord:
     """座標を保持するクラス"""
 
-    def __init__(self, y: int = 0, x: int = 0):
+    def __init__(self, y=0, x=0):
         self.y = y
         self.x = x
 
 
-class AutoMoveMazeState:
-    """自動一人ゲームの状態を管理するクラス"""
+class AutoMazeState:
+    """自動一人ゲームの状況を管理するクラス"""
 
-    # 移動方向（右、左、下、上）の順
+    # 移動方向（右、左、下、上の順）
     dx = [1, -1, 0, 0]
     dy = [0, 0, 1, -1]
 
-    def __init__(self, seed: int):
+    def __init__(self, seed):
         self.turn = 0
         self.game_score = 0
         self.evaluated_score = 0
@@ -41,12 +41,12 @@ class AutoMoveMazeState:
             for x in range(W):
                 self.points[y][x] = random.randint(1, 9)
 
-    def set_character(self, character_id: int, y: int, x: int):
+    def set_character(self, character_id, y, x):
         """指定位置に指定キャラクターを配置する"""
         self.characters[character_id].y = y
         self.characters[character_id].x = x
 
-    def move_player(self, character_id: int):
+    def move_player(self, character_id):
         """指定キャラクターを移動させる"""
         character = self.characters[character_id]
         best_point = -INF
@@ -57,7 +57,7 @@ class AutoMoveMazeState:
             tx = character.x + self.dx[action]
             if 0 <= ty < H and 0 <= tx < W:
                 point = self.points[ty][tx]
-                if best_point < point:
+                if point > best_point:
                     best_point = point
                     best_action_index = action
 
@@ -83,7 +83,7 @@ class AutoMoveMazeState:
         return self.turn == END_TURN
 
     def to_string(self):
-        """現在のゲームの状況を文字列にする"""
+        """現在のゲーム状況を文字列にする"""
         result = f"turn:\t{self.turn}\n"
         result += f"score:\t{self.game_score}\n"
 
@@ -107,7 +107,7 @@ class AutoMoveMazeState:
 
         return result
 
-    def get_score(self, is_print: bool = False):
+    def get_score(self, is_print=False):
         """スコア計算をする"""
         tmp_state = copy.deepcopy(self)
 
@@ -171,8 +171,6 @@ def simulated_annealing(state, number, start_temp, end_temp):
         probability = math.exp((next_score - now_score) / temp)
         is_force_next = probability > random.random()
 
-        # スコアが改善すれば遷移
-        # スコアが改善しなくとも強制遷移フラグがTrueであれば遷移
         if next_score > now_score or is_force_next:
             now_score = next_score
             now_state = next_state
@@ -190,21 +188,21 @@ def test_ai_score(ai_name, ai_function, game_number):
     score_mean = 0
 
     for i in range(game_number):
-        # 複数シードの平均スコアを計算
-        state = AutoMoveMazeState(random.randint(0, 1000000))
+        state = AutoMazeState(random.randint(0, 1000000))
         state = ai_function(state)
         score = state.get_score(False)
         score_mean += score
 
     score_mean /= game_number
-    print(f"Socre of {ai_name}:\t{score_mean}")
+    print(f"Score of {ai_name}:\t{score_mean}")
 
 
 def main():
+    """メイン関数"""
     simulate_number = 1000
     game_number = 1000
 
-    # AIアルゴリズムのリスト
+    # AI関数の定義
     ais = [
         ("hillClimb", lambda state: hill_climb(state, simulate_number)),
         (
@@ -213,6 +211,7 @@ def main():
         ),
     ]
 
+    # 各AIのテスト実行
     for ai_name, ai_function in ais:
         test_ai_score(ai_name, ai_function, game_number)
 
