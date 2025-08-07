@@ -20,14 +20,18 @@ for i in range(q):
     elif s[0] == "3":
         s2 = int(s[1]) - 1
         v = g[s2]
-        add = []
+        add_set = set()
         for x in v:
-            add += g[x]
-        g[s2] += add
+            for c in g[x]:
+                if c != s2 and c not in add_set:
+                    add_set.add(c)
+        for c in list(add_set):
+            g[s2].append(c)
 
-for i in g:
-    ans = ["N" for _ in range(n)]
-    x = sorted(list(set(i)))
-    for j in x:
-        ans[j] = "Y"
-    print(*ans, sep="")
+for i in range(n):
+    for j in range(n):
+        if j in g[i]:
+            print("Y", end="")
+        else:
+            print("N", end="")
+    print()
